@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY')
 
 # Configuración de la base de datos
-DATABASE_URL = 'postgresql://postgres:herbye25@localhost/gestion_locales' # Reemplaza con tus datos
+DATABASE_URL =  'postgresql://gestion_locales_user:SBt1IjWBA09qqXuiGNJyXFJtukOw6MRb@dpg-cv9od4lumphs73a9jksg-a/gestion_locales'#'postgresql://postgres:herbye25@localhost/gestion_locales'
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
