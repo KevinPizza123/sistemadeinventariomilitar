@@ -40,8 +40,8 @@ def create_tables():
     table_exists = True
     for tabla in tablas:
         cur.execute(f"SELECT to_regclass('{tabla}');")
-        result = cur.fetchone()[0]
-        if result is None:
+        result = cur.fetchone()
+        if result is None or result[0] is None:
             table_exists = False
             break
 
