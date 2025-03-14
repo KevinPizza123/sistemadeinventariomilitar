@@ -32,9 +32,22 @@ def get_db_connection():
 def create_tables():
     conn = get_db_connection()
     cur = conn.cursor()
-    with open('schema.sql', 'r') as f:
-        cur.execute(f.read())
-    conn.commit()
+
+    # Nombres de las tablas que deseas verificar
+    tablas = ['Vendedores', 'Locales', 'Productos', 'Inventario', 'Vendedores_Locales']
+
+    # Verificar si cada tabla existe
+    for tabla in tablas:
+        cur.execute(f"SELECT to_regclass('{tabla}');")
+        table_exists = cur.fetchone()[0]
+
+        # Si alguna tabla no existe, ejecutar el script schema.sql
+        if not all(cur.execute(f"SELECT to_regclass('{t}');").fetchone()[0] for t in tablas):
+            with open('schema.sql', 'r') as f:
+                cur.execute(f.read())
+            conn.commit()
+            break  # Salir del bucle después de ejecutar el script
+
     cur.close()
     conn.close()
 
