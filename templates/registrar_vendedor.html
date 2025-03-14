@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registrar Vendedor</title>
+</head>
+<body>
+    <h1>Registrar Vendedor</h1>
+    <form method="POST">
+        <label for="nombre">Nombre:</label><br>
+        <input type="text" id="nombre" name="nombre" required><br><br>
+        <label for="password">Contraseña:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+        <label>Locales:</label><br>
+        {% for local in locales %}
+        <input type="checkbox" id="local_{{ local[0] }}" name="locales" value="{{ local[0] }}">
+        <label for="local_{{ local[0] }}">{{ local[1] }}</label><br>
+        {% endfor %}
+        <br>
+        <input type="submit" value="Registrar">
+    </form>
+    <br>
+    <a href="/admin/locales">Volver a Locales</a>
+</body>
+</html>

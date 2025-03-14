@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Locales (Admin)</title>
+</head>
+<body>
+    <h1>Locales (Admin)</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for local in locales %}
+            <tr>
+                <td>{{ local[0] }}</td>
+                <td>{{ local[1] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="/admin/registrar_vendedor">Registrar Vendedor</a> |
+    <a href="/admin/productos">Productos</a> |
+    <a href="/dashboard">Panel de Control</a>
+</body>
+</html>

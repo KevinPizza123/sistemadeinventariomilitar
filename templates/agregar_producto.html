@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agregar Producto</title>
+</head>
+<body>
+    <h1>Agregar Producto</h1>
+    <form method="POST">
+        <label for="nombre">Nombre:</label>
+        <input type="text" name="nombre" required><br>
+        <label for="descripcion">Descripción:</label>
+        <textarea name="descripcion"></textarea><br>
+        <label for="precio">Precio:</label>
+        <input type="number" name="precio" step="0.01" required><br>
+        <label for="local_id">Local:</label>
+        <select name="local_id">
+            {% for local in locales %}
+            <option value="{{ local[0] }}">{{ local[1] }}</option>
+            {% endfor %}
+        </select><br>
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" name="cantidad" required><br>
+        <input type="submit" value="Agregar">
+    </form>
+</body>
+</html>

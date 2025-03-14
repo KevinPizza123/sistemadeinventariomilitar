@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Productos (Vendedor)</title>
+</head>
+<body>
+    <h1>Productos (Vendedor)</h1>
+    <h2>Productos por Tienda</h2>
+    {% for local_id, productos in productos_por_tienda.items() %}
+    <h3>Tienda {{ local_id }}</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Local</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+            <tr>
+                <td>{{ producto[0] }}</td>
+                <td>{{ producto[1] }}</td>
+                <td>{{ producto[2] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    <h2>Todos los Productos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Local</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in todos_los_productos %}
+            <tr>
+                <td>{{ producto[0] }}</td>
+                <td>{{ producto[1] }}</td>
+                <td>{{ producto[2] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="/vendedor/agregar_producto">Agregar Producto</a> |
+    <a href="/dashboard">Panel de Control</a>
+</body>
+</html>

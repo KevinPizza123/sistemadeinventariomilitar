@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lista de Locales</title>
+</head>
+<body>
+    <h1>Locales</h1>
+    <ul>
+        {% for local in locales %}
+        <li><a href="{{ url_for('lista_productos', local_id=local[0]) }}">{{ local[1] }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

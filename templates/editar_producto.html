@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar Producto</title>
+</head>
+<body>
+    <h1>Editar Producto: {{ producto[0] }}</h1>
+    <form method="POST">
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" name="cantidad" value="{{ producto[1] }}" required><br>
+        <input type="submit" value="Guardar">
+    </form>
+</body>
+</html>

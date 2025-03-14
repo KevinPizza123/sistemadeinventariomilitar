@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Agregar Producto (Vendedor)</title>
+</head>
+<body>
+    <h1>Agregar Producto (Vendedor)</h1>
+    <form method="POST">
+        <label for="nombre">Nombre:</label><br>
+        <input type="text" id="nombre" name="nombre" required><br><br>
+        <label for="descripcion">Descripción:</label><br>
+        <textarea id="descripcion" name="descripcion"></textarea><br><br>
+        <label for="precio">Precio:</label><br>
+        <input type="number" id="precio" name="precio" required><br><br>
+        <label for="cantidad">Cantidad:</label><br>
+        <input type="number" id="cantidad" name="cantidad" required><br><br>
+        <input type="submit" value="Agregar">
+    </form>
+    <br>
+    <a href="/vendedor/productos">Ver Productos</a> |
+    <a href="/dashboard">Panel de Control</a>
+</body>
+</html>
