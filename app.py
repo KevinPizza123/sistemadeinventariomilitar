@@ -37,16 +37,19 @@ def create_tables():
     tablas = ['Vendedores', 'Locales', 'Productos', 'Inventario', 'Vendedores_Locales']
 
     # Verificar si cada tabla existe
+    table_exists = True
     for tabla in tablas:
         cur.execute(f"SELECT to_regclass('{tabla}');")
-        table_exists = cur.fetchone()[0]
+        result = cur.fetchone()[0]
+        if result is None:
+            table_exists = False
+            break
 
-        # Si alguna tabla no existe, ejecutar el script schema.sql
-        if not all(cur.execute(f"SELECT to_regclass('{t}');").fetchone()[0] for t in tablas):
-            with open('schema.sql', 'r') as f:
-                cur.execute(f.read())
-            conn.commit()
-            break  # Salir del bucle después de ejecutar el script
+    # Si alguna tabla no existe, ejecutar el script schema.sql
+    if not table_exists:
+        with open('schema.sql', 'r') as f:
+            cur.execute(f.read())
+        conn.commit()
 
     cur.close()
     conn.close()
