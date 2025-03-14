@@ -5,7 +5,8 @@
 </head>
 <body>
     <h1>Productos (Admin)</h1>
-    <table>
+    <input type="text" id="cliente" placeholder="Buscar producto...">
+    <table id="tabla-productos">
         <thead>
             <tr>
                 <th>Producto</th>
@@ -14,15 +15,38 @@
             </tr>
         </thead>
         <tbody>
-            {% for producto in productos %}
+            {% for resultado in resultados %}
             <tr>
-                <td>{{ producto[0] }}</td>
-                <td>{{ producto[1] }}</td>
-                <td>{{ producto[2] }}</td>
+                <td>{{ resultado[0] }}</td>
+                <td>{{ resultado[1] }}</td>
+                <td>{{ resultado[2] }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        const inputCliente = document.getElementById('cliente');
+        const tablaProductos = document.getElementById('tabla-productos').getElementsByTagName('tbody')[0];
+
+        inputCliente.addEventListener('input', function() {
+            const cliente = this.value;
+            fetch('/admin/productos/filtrar?cliente=' + cliente)
+                .then(response => response.json())
+                .then(data => {
+                    tablaProductos.innerHTML = '';
+                    data.forEach(resultado => {
+                        let row = tablaProductos.insertRow();
+                        let cell1 = row.insertCell(0);
+                        let cell2 = row.insertCell(1);
+                        let cell3 = row.insertCell(2);
+                        cell1.innerHTML = resultado[0];
+                        cell2.innerHTML = resultado[1];
+                        cell3.innerHTML = resultado[2];
+                    });
+                });
+        });
+    </script>
     <br>
     <a href="/admin/agregar_producto">Agregar Producto</a> |
     <a href="/admin/locales">Locales</a> |

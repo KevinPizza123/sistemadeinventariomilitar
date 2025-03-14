@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,47 +6,91 @@
 </head>
 <body>
     <h1>Productos (Vendedor)</h1>
-    <h2>Productos por Tienda</h2>
-    {% for local_id, productos in productos_por_tienda.items() %}
-    <h3>Tienda {{ local_id }}</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Local</th>
-                <th>Cantidad</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for producto in productos %}
-            <tr>
-                <td>{{ producto[0] }}</td>
-                <td>{{ producto[1] }}</td>
-                <td>{{ producto[2] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endfor %}
-    <h2>Todos los Productos</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Local</th>
-                <th>Cantidad</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for producto in todos_los_productos %}
-            <tr>
-                <td>{{ producto[0] }}</td>
-                <td>{{ producto[1] }}</td>
-                <td>{{ producto[2] }}</td>
-            </tr>
+    <input type="text" id="cliente" placeholder="Buscar producto...">
+    <div id="productos-por-tienda">
+        <h2>Productos por Tienda</h2>
+        {% for nombre_local, productos in productos_por_tienda.items() %}
+        <h3>Tienda {{ nombre_local }}</h3>
+        <table class="tabla-tienda">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Local</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto[0] }}</td>
+                    <td>{{ producto[1] }}</td>
+                    <td>{{ producto[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
+    <div id="todos-los-productos">
+        <h2>Todos los Productos</h2>
+        <table id="tabla-todos-productos">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Local</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in todos_los_productos %}
+                <tr>
+                    <td>{{ producto[0] }}</td>
+                    <td>{{ producto[1] }}</td>
+                    <td>{{ producto[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        const inputCliente = document.getElementById('cliente');
+        const productosPorTiendaDiv = document.getElementById('productos-por-tienda');
+        const tablaTodosProductos = document.getElementById('tabla-todos-productos').getElementsByTagName('tbody')[0];
+
+        inputCliente.addEventListener('input', function() {
+            const cliente = this.value;
+            fetch('/vendedor/productos/filtrar?cliente=' + cliente)
+                .then(response => response.json())
+                .then(data => {
+                    productosPorTiendaDiv.innerHTML = '<h2>Productos por Tienda</h2>';
+                    for (const localId in data.productos_por_tienda) {
+                        const productos = data.productos_por_tienda[localId];
+                        productosPorTiendaDiv.innerHTML += `<h3>Tienda ${localId}</h3><table class="tabla-tienda"><thead><tr><th>Producto</th><th>Local</th><th>Cantidad</th></tr></thead><tbody></tbody></table>`;
+                        const tablaTienda = productosPorTiendaDiv.lastElementChild.getElementsByTagName('tbody')[0];
+                        productos.forEach(producto => {
+                            let row = tablaTienda.insertRow();
+                            let cell1 = row.insertCell(0);
+                            let cell2 = row.insertCell(1);
+                            let cell3 = row.insertCell(2);
+                            cell1.innerHTML = producto[0];
+                            cell2.innerHTML = producto[1];
+                            cell3.innerHTML = producto[2];
+                        });
+                    }
+                    tablaTodosProductos.innerHTML = '';
+                    data.todos_los_productos.forEach(producto => {
+                        let row = tablaTodosProductos.insertRow();
+                        let cell1 = row.insertCell(0);
+                        let cell2 = row.insertCell(1);
+                        let cell3 = row.insertCell(2);
+                        cell1.innerHTML = producto[0];
+                        cell2.innerHTML = producto[1];
+                        cell3.innerHTML = producto[2];
+                    });
+                });
+        });
+    </script>
+    <br>
     <br>
     <a href="/vendedor/agregar_producto">Agregar Producto</a> |
     <a href="/dashboard">Panel de Control</a>

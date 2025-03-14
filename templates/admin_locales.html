@@ -5,11 +5,13 @@
 </head>
 <body>
     <h1>Locales (Admin)</h1>
+    <a href="/admin/agregar_local">Agregar Local</a>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Nombre</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -17,6 +19,10 @@
             <tr>
                 <td>{{ local[0] }}</td>
                 <td>{{ local[1] }}</td>
+                <td>
+                    <a href="/admin/editar_local/{{ local[0] }}">Editar</a> |
+                    <a href="/admin/eliminar_local/{{ local[0] }}">Eliminar</a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

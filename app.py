@@ -129,11 +129,35 @@ def admin_productos():
         return redirect(url_for('login'))
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute('SELECT p.nombre, l.nombre, i.cantidad FROM Productos p JOIN Inventario i ON p.producto_id = i.producto_id JOIN Locales l ON i.local_id = l.local_id;')
-    productos = cur.fetchall()
+    cur.execute('''
+        SELECT p.nombre, l.nombre, i.cantidad
+        FROM Productos p
+        JOIN Inventario i ON p.producto_id = i.producto_id
+        JOIN Locales l ON i.local_id = l.local_id;
+    ''')
+    resultados = cur.fetchall()
     cur.close()
     conn.close()
-    return render_template('admin_productos.html', productos=productos)
+    return render_template('admin_productos.html', resultados=resultados)
+
+@app.route('/admin/productos/filtrar')
+def admin_productos_filtrar():
+    if 'vendedor_id' not in session or not session['es_admin']:
+        return jsonify([])
+    cliente = request.args.get('cliente', '')
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT p.nombre, l.nombre, i.cantidad
+        FROM Productos p
+        JOIN Inventario i ON p.producto_id = i.producto_id
+        JOIN Locales l ON i.local_id = l.local_id
+        WHERE p.nombre ILIKE %s;
+    ''', ('%' + cliente + '%',))
+    resultados = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(resultados)
 
 @app.route('/admin/agregar_producto', methods=['GET', 'POST'])
 def admin_agregar_producto():
@@ -160,6 +184,52 @@ def admin_agregar_producto():
     conn.close()
     return render_template('admin_agregar_producto.html', locales=locales)
 
+@app.route('/admin/agregar_local', methods=['GET', 'POST'])
+def agregar_local():
+    if 'vendedor_id' not in session or not session['es_admin']:
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('INSERT INTO Locales (nombre) VALUES (%s);', (nombre,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('admin_locales'))
+    return render_template('agregar_local.html')
+
+@app.route('/admin/eliminar_local/<int:local_id>')
+def eliminar_local(local_id):
+    if 'vendedor_id' not in session or not session['es_admin']:
+        return redirect(url_for('login'))
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('DELETE FROM Locales WHERE local_id = %s;', (local_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return redirect(url_for('admin_locales'))
+
+@app.route('/admin/editar_local/<int:local_id>', methods=['GET', 'POST'])
+def editar_local(local_id):
+    if 'vendedor_id' not in session or not session['es_admin']:
+        return redirect(url_for('login'))
+    conn = get_db_connection()
+    cur = conn.cursor()
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        cur.execute('UPDATE Locales SET nombre = %s WHERE local_id = %s;', (nombre, local_id))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('admin_locales'))
+    cur.execute('SELECT nombre FROM Locales WHERE local_id = %s;', (local_id,))
+    local = cur.fetchone()
+    cur.close()
+    conn.close()
+    return render_template('editar_local.html', local=local, local_id=local_id)
+
 @app.route('/admin/locales')
 def admin_locales():
     if 'vendedor_id' not in session or not session['es_admin']:
@@ -181,13 +251,57 @@ def vendedor_productos():
     cur = conn.cursor()
     productos_por_tienda = {}
     for local_id in locales:
-        cur.execute('SELECT p.nombre, l.nombre, i.cantidad FROM Productos p JOIN Inventario i ON p.producto_id = i.producto_id JOIN Locales l ON i.local_id = l.local_id WHERE l.local_id = %s;', (local_id,))
-        productos_por_tienda[local_id] = cur.fetchall()
-    cur.execute('SELECT p.nombre, l.nombre, i.cantidad FROM Productos p JOIN Inventario i ON p.producto_id = i.producto_id JOIN Locales l ON i.local_id = l.local_id;')
+        cur.execute('''
+            SELECT p.nombre, l.nombre, i.cantidad, l.nombre AS nombre_local
+            FROM Productos p
+            JOIN Inventario i ON p.producto_id = i.producto_id
+            JOIN Locales l ON i.local_id = l.local_id
+            WHERE l.local_id = %s;
+        ''', (local_id,))
+        productos = cur.fetchall()
+        if productos:
+            nombre_local = productos[0][3]  # Obtiene el nombre del local
+            productos_por_tienda[nombre_local] = productos
+    cur.execute('''
+        SELECT p.nombre, l.nombre, i.cantidad
+        FROM Productos p
+        JOIN Inventario i ON p.producto_id = i.producto_id
+        JOIN Locales l ON i.local_id = l.local_id;
+    ''')
     todos_los_productos = cur.fetchall()
     cur.close()
     conn.close()
     return render_template('vendedor_productos.html', productos_por_tienda=productos_por_tienda, todos_los_productos=todos_los_productos)
+
+@app.route('/vendedor/productos/filtrar')
+def vendedor_productos_filtrar():
+    if 'vendedor_id' not in session:
+        return jsonify([])
+    cliente = request.args.get('cliente', '')
+    locales = get_locales_vendedor(session['vendedor_id'])
+    conn = get_db_connection()
+    cur = conn.cursor()
+    productos_por_tienda = {}
+    for local_id in locales:
+        cur.execute('''
+            SELECT p.nombre, l.nombre, i.cantidad
+            FROM Productos p
+            JOIN Inventario i ON p.producto_id = i.producto_id
+            JOIN Locales l ON i.local_id = l.local_id
+            WHERE l.local_id = %s AND p.nombre ILIKE %s;
+        ''', (local_id, '%' + cliente + '%'))
+        productos_por_tienda[local_id] = cur.fetchall()
+    cur.execute('''
+        SELECT p.nombre, l.nombre, i.cantidad
+        FROM Productos p
+        JOIN Inventario i ON p.producto_id = i.producto_id
+        JOIN Locales l ON i.local_id = l.local_id
+        WHERE p.nombre ILIKE %s;
+    ''', ('%' + cliente + '%',))
+    todos_los_productos = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify({'productos_por_tienda': productos_por_tienda, 'todos_los_productos': todos_los_productos})
 
 @app.route('/vendedor/agregar_producto', methods=['GET', 'POST'])
 def vendedor_agregar_producto():
