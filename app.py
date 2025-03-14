@@ -7,14 +7,36 @@ from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY')
+#app.secret_key = os.environ.get('SECRET_KEY')
 
 # Configuración de la base de datos
-DATABASE_URL =  'postgresql://gestion_locales_user:SBt1IjWBA09qqXuiGNJyXFJtukOw6MRb@dpg-cv9od4lumphs73a9jksg-a/gestion_locales'#'postgresql://postgres:herbye25@localhost/gestion_locales'
+#DATABASE_URL =  'postgresql://gestion_locales_user:SBt1IjWBA09qqXuiGNJyXFJtukOw6MRb@dpg-cv9od4lumphs73a9jksg-a/gestion_locales'#'postgresql://postgres:herbye25@localhost/gestion_locales'
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
     return conn
+
+#render bdd 
+app.secret_key = os.environ.get('SECRET_KEY')
+
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
+
+def create_tables():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    with open('schema.sql', 'r') as f:
+        cur.execute(f.read())
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# Crea las tablas al inicio de la aplicación
+with app.app_context():
+    create_tables()
 # Panel de control
 @app.route('/dashboard')
 def dashboard():

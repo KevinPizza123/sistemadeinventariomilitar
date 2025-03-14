@@ -1,4 +1,6 @@
-import secrets
+import bcrypt
 
-secret_key = secrets.token_hex(16)
-print(secret_key)
+password = 'herbye25'
+salt = bcrypt.gensalt()
+hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+print(hashed_password.decode('utf-8'))
