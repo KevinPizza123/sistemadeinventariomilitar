@@ -1,8 +1,12 @@
 import os
 import bcrypt
-from flask import Flask, jsonify, render_template, request, redirect, session, url_for
+from flask import Flask, jsonify, render_template, request, redirect, send_file, session, url_for
 import psycopg2
 from dotenv import load_dotenv
+import io
+from openpyxl import Workbook
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 
 load_dotenv()
@@ -263,7 +267,59 @@ def admin_locales():
     cur.close()
     conn.close()
     return render_template('admin_locales.html', locales=locales)
+#exelypdfadmin
+@app.route('/admin/productos/excel')
+def admin_productos_excel():
+    if 'vendedor_id' not in session or not session['es_admin']:
+        return redirect(url_for('login'))
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT p.nombre, l.nombre, i.cantidad
+        FROM Productos p
+        JOIN Inventario i ON p.producto_id = i.producto_id
+        JOIN Locales l ON i.local_id = l.local_id;
+    ''')
+    productos = cur.fetchall()
+    cur.close()
+    conn.close()
+    wb = Workbook()
+    ws = wb.active
+    ws.append(['Producto', 'Local', 'Cantidad'])
+    for producto in productos:
+        ws.append(producto)
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return send_file(output, download_name='productos.xlsx', as_attachment=True)
 
+@app.route('/admin/productos/pdf')
+def admin_productos_pdf():
+    if 'vendedor_id' not in session or not session['es_admin']:
+        return redirect(url_for('login'))
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT p.nombre, l.nombre, i.cantidad
+        FROM Productos p
+        JOIN Inventario i ON p.producto_id = i.producto_id
+        JOIN Locales l ON i.local_id = l.local_id;
+    ''')
+    productos = cur.fetchall()
+    cur.close()
+    conn.close()
+    output = io.BytesIO()
+    p = canvas.Canvas(output, pagesize=letter)
+    y = 750
+    p.drawString(100, y, 'Productos')
+    y -= 20
+    for producto in productos:
+        p.drawString(100, y, f'{producto[0]} - {producto[1]} - {producto[2]}')
+        y -= 15
+    p.save()
+    output.seek(0)
+    return send_file(output, download_name='productos.pdf', as_attachment=True)
+#vendedor
 @app.route('/vendedor/productos')
 def vendedor_productos():
     if 'vendedor_id' not in session:
@@ -348,6 +404,68 @@ def vendedor_agregar_producto():
         conn.close()
         return redirect(url_for('vendedor_productos'))
     return render_template('vendedor_agregar_producto.html')
+
+
+#excel y pdf vendedor
+@app.route('/vendedor/productos/excel')
+def productos_excel():
+    if 'vendedor_id' not in session:
+        return redirect(url_for('login'))
+    locales = get_locales_vendedor(session['vendedor_id'])
+    conn = get_db_connection()
+    cur = conn.cursor()
+    productos = []
+    for local_id in locales:
+        cur.execute('''
+            SELECT p.nombre, l.nombre, i.cantidad
+            FROM Productos p
+            JOIN Inventario i ON p.producto_id = i.producto_id
+            JOIN Locales l ON i.local_id = l.local_id
+            WHERE l.local_id = %s;
+        ''', (local_id,))
+        productos.extend(cur.fetchall())
+    cur.close()
+    conn.close()
+    wb = Workbook()
+    ws = wb.active
+    ws.append(['Producto', 'Local', 'Cantidad'])
+    for producto in productos:
+        ws.append(producto)
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return send_file(output, download_name='productos.xlsx', as_attachment=True)
+
+@app.route('/vendedor/productos/pdf')
+def productos_pdf():
+    if 'vendedor_id' not in session:
+        return redirect(url_for('login'))
+    locales = get_locales_vendedor(session['vendedor_id'])
+    conn = get_db_connection()
+    cur = conn.cursor()
+    productos = []
+    for local_id in locales:
+        cur.execute('''
+            SELECT p.nombre, l.nombre, i.cantidad
+            FROM Productos p
+            JOIN Inventario i ON p.producto_id = i.producto_id
+            JOIN Locales l ON i.local_id = l.local_id
+            WHERE l.local_id = %s;
+        ''', (local_id,))
+        productos.extend(cur.fetchall())
+    cur.close()
+    conn.close()
+    output = io.BytesIO()
+    p = canvas.Canvas(output, pagesize=letter)
+    y = 750
+    p.drawString(100, y, 'Productos')
+    y -= 20
+    for producto in productos:
+        p.drawString(100, y, f'{producto[0]} - {producto[1]} - {producto[2]}')
+        y -= 15
+    p.save()
+    output.seek(0)
+    return send_file(output, download_name='productos.pdf', as_attachment=True)
 
 def get_locales_vendedor(vendedor_id):
     conn = get_db_connection()
@@ -458,6 +576,8 @@ def buscar_cliente_filtrar():
     cur.close()
     conn.close()
     return jsonify(resultados)
+
+
 
 
 @app.route('/eliminar_producto/<int:producto_id>/<int:local_id>')
