@@ -16,3 +16,5 @@ try:
     conn.close()
 except psycopg2.Error as e:
     print(f"Error connecting to database: {e}")
+    #paella
+    
